@@ -1,32 +1,31 @@
 "use client"
 
-import { EmptyState, Layout, Page } from "@shopify/polaris"
-import { useEffect } from "react"
+import { Page, Card, Button, Text, EmptyState } from "@shopify/polaris"
+import { useRouter } from "next/navigation"
 
-export default function Home() {
-  useEffect(() => {
-    console.log('Home page mounted')
-    try {
-      console.log('Window object available:', typeof window !== 'undefined')
-      console.log('Document object available:', typeof document !== 'undefined')
-    } catch (error) {
-      console.error('Error checking environment:', error)
-    }
-  }, [])
+export default function Welcome() {
+  const router = useRouter()
 
   return (
     <Page>
-      <Layout>
-        <Layout.Section>
+      <Card>
+        <div style={{ padding: "2rem" }}>
           <EmptyState
             heading="Shopifyアプリへようこそ"
-            action={{ content: "ダッシュボードを見る", url: "/dashboard" }}
-            image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+            image="/welcome-image.svg"
+            action={{
+              content: "ダッシュボードを見る",
+              onAction: () => router.push("/dashboard"),
+            }}
           >
-            <p>このアプリはShopifyストアのデータを分析し、AIを活用した提案を行います。</p>
+            <p>
+              このアプリはShopifyストアのデータを分析し、AIを活用した提案を行います。
+              <br />
+              売上、顧客、商品の分析や、AIによるマーケティング提案を確認できます。
+            </p>
           </EmptyState>
-        </Layout.Section>
-      </Layout>
+        </div>
+      </Card>
     </Page>
   )
 }

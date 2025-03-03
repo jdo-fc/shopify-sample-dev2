@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useCallback } from "react"
 import {
   Page,
   Layout,
@@ -14,28 +15,17 @@ import {
   EmptyState,
   Box,
 } from "@shopify/polaris"
-import { useState, useCallback, useEffect } from "react"
 
 export default function Analytics() {
   const [selected, setSelected] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-
-  // デバッグ用のeffect
-  useEffect(() => {
-    console.log("Analytics component mounted")
-    console.log("Current tab:", selected)
-    console.log("Loading state:", isLoading)
-  }, [selected, isLoading])
 
   const handleTabChange = useCallback((selectedTabIndex: number) => {
     console.log("Tab changed to:", selectedTabIndex)
     setSelected(selectedTabIndex)
   }, [])
 
-  const toggleIsLoading = useCallback(() => {
-    console.log("Toggling loading state")
-    setIsLoading((isLoading) => !isLoading)
-  }, [])
+  const toggleIsLoading = useCallback(() => setIsLoading((isLoading) => !isLoading), [])
 
   const tabs = [
     {
@@ -81,14 +71,6 @@ export default function Analytics() {
     ["商品E", "75", "¥9,800", "4.1"],
   ]
 
-  // サンプルデータ
-  const data = [
-    { month: "1月", sales: 1200000, orders: 150 },
-    { month: "2月", sales: 1500000, orders: 180 },
-    { month: "3月", sales: 1800000, orders: 220 },
-    { month: "4月", sales: 1600000, orders: 190 },
-  ]
-
   return (
     <Page
       title="分析ダッシュボード"
@@ -132,7 +114,6 @@ export default function Analytics() {
                     <div style={{ height: "250px" }}>
                       {/* TODO: グラフライブラリを使用して売上推移を表示 */}
                       <Text as="p">グラフが表示される予定</Text>
-                      <pre>{JSON.stringify(data, null, 2)}</pre>
                     </div>
                   )}
                 </LegacyCard.Section>
@@ -148,40 +129,10 @@ export default function Analytics() {
                     <div style={{ height: "250px" }}>
                       {/* TODO: グラフライブラリを使用して注文数推移を表示 */}
                       <Text as="p">グラフが表示される予定</Text>
-                      <pre>{JSON.stringify(data, null, 2)}</pre>
                     </div>
                   )}
                 </LegacyCard.Section>
               </LegacyCard>
-            </Layout.Section>
-
-            <Layout.Section>
-              <Card>
-                <Box padding="4">
-                  <Text variant="headingMd" as="h2">
-                    AIによるインサイト
-                  </Text>
-                  {isLoading ? (
-                    <SkeletonBodyText lines={3} />
-                  ) : (
-                    <Text as="p">
-                      データ分析の結果、以下のような傾向が見られます：
-                      <br />
-                      1. 週末の売上が平日と比べて25%高い
-                      <br />
-                      2. リピート購入率が前月比で10%向上
-                      <br />
-                      3. 商品Aと商品Bの組み合わせ購入が増加傾向
-                    </Text>
-                  )}
-                </Box>
-                <Box padding="4">
-                  <ButtonGroup>
-                    <Button variant="primary">詳細分析を表示</Button>
-                    <Button variant="secondary">レポートを生成</Button>
-                  </ButtonGroup>
-                </Box>
-              </Card>
             </Layout.Section>
           </Layout>
         )}
@@ -210,31 +161,15 @@ export default function Analytics() {
             </Layout.Section>
 
             <Layout.Section>
-              <Card>
-                <Box padding="4">
-                  <Text variant="headingMd" as="h2">
-                    AIによる顧客インサイト
-                  </Text>
-                  {isLoading ? (
-                    <SkeletonBodyText lines={5} />
-                  ) : (
-                    <Text as="p">
-                      分析によると、20代の顧客は平日の夜に購入する傾向があり、商品Aと商品Cを組み合わせて購入することが多いです。
-                      また、初回購入から30日以内に2回目の購入をする確率が高いため、初回購入後のフォローアップキャンペーンが効果的です。
-                      <br />
-                      <br />
-                      40代以上の顧客は週末の朝に購入する傾向があり、商品Bへの関心が高いです。この層には商品Bに関連する特典や情報を提供することで、
-                      顧客満足度とリピート率を向上させることができます。
-                    </Text>
-                  )}
-                </Box>
-                <Box padding="4">
-                  <ButtonGroup>
-                    <Button variant="secondary">詳細分析を見る</Button>
-                    <Button variant="primary">セグメント別キャンペーン作成</Button>
-                  </ButtonGroup>
-                </Box>
-              </Card>
+              <LegacyCard title="地域別顧客データ">
+                <LegacyCard.Section>
+                  <DataTable
+                    columnContentTypes={["text", "numeric", "numeric", "numeric"]}
+                    headings={["地域", "顧客数", "平均購入額", "リピート率"]}
+                    rows={customerRows}
+                  />
+                </LegacyCard.Section>
+              </LegacyCard>
             </Layout.Section>
           </Layout>
         )}
@@ -243,7 +178,7 @@ export default function Analytics() {
           <Layout>
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <Text variant="headingMd" as="h2">
                     商品パフォーマンス
                   </Text>
@@ -258,37 +193,20 @@ export default function Analytics() {
                       評価の高い商品: 商品C (4.8/5.0)
                     </Text>
                   )}
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
 
             <Layout.Section>
-              <Card>
-                <Card.Section>
-                  <Text variant="headingMd" as="h2">
-                    AIによる商品インサイト
-                  </Text>
-                  {isLoading ? (
-                    <SkeletonBodyText lines={5} />
-                  ) : (
-                    <Text as="p">
-                      商品Aと商品Cは一緒に購入されることが多く、バンドル販売の機会があります。
-                      <br />
-                      <br />
-                      商品Dは数量は多いものの、利益率が低いため、価格戦略の見直しが推奨されます。
-                      <br />
-                      <br />
-                      商品Bは閲覧数は多いものの、購入率が低いため、商品説明や画像の改善が効果的かもしれません。
-                    </Text>
-                  )}
-                </Card.Section>
-                <Card.Section>
-                  <ButtonGroup>
-                    <Button>詳細分析を見る</Button>
-                    <Button primary>商品戦略の提案を見る</Button>
-                  </ButtonGroup>
-                </Card.Section>
-              </Card>
+              <LegacyCard title="商品別データ">
+                <LegacyCard.Section>
+                  <DataTable
+                    columnContentTypes={["text", "numeric", "numeric", "numeric"]}
+                    headings={["商品名", "販売数", "売上", "評価"]}
+                    rows={productRows}
+                  />
+                </LegacyCard.Section>
+              </LegacyCard>
             </Layout.Section>
           </Layout>
         )}
@@ -297,7 +215,7 @@ export default function Analytics() {
           <Layout>
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <EmptyState
                     heading="AIによる高度な分析"
                     action={{ content: "AIアシスタントに質問する" }}
@@ -308,13 +226,13 @@ export default function Analytics() {
                       例えば「最も効果的なマーケティング戦略は？」や「どの商品をプロモーションすべき？」などの質問ができます。
                     </p>
                   </EmptyState>
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
 
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <Text variant="headingMd" as="h2">
                     AIによる予測分析
                   </Text>
@@ -331,13 +249,13 @@ export default function Analytics() {
                       顧客の購買パターン分析によると、次回のセールでは商品Bと商品Eの組み合わせプロモーションが効果的です。
                     </Text>
                   )}
-                </Card.Section>
-                <Card.Section>
+                </Box>
+                <Box padding="4">
                   <ButtonGroup>
-                    <Button>詳細予測を見る</Button>
-                    <Button primary>予測に基づく戦略を立てる</Button>
+                    <Button variant="secondary">詳細予測を見る</Button>
+                    <Button variant="primary">予測に基づく戦略を立てる</Button>
                   </ButtonGroup>
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
           </Layout>
