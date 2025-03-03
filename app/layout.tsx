@@ -84,8 +84,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             label: "顧客",
           },
           {
-            url: "/dashboard/marketing",
-            label: "マーケティング",
+            url: "/dashboard/direct-mail",
+            label: "DM作成・郵送",
           },
           {
             url: "/dashboard/settings",
