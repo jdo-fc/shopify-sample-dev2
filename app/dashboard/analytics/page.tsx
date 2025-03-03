@@ -12,16 +12,30 @@ import {
   ButtonGroup,
   Button,
   EmptyState,
+  Box,
 } from "@shopify/polaris"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 
 export default function Analytics() {
   const [selected, setSelected] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleTabChange = useCallback((selectedTabIndex: number) => setSelected(selectedTabIndex), [])
+  // デバッグ用のeffect
+  useEffect(() => {
+    console.log("Analytics component mounted")
+    console.log("Current tab:", selected)
+    console.log("Loading state:", isLoading)
+  }, [selected, isLoading])
 
-  const toggleIsLoading = useCallback(() => setIsLoading((isLoading) => !isLoading), [])
+  const handleTabChange = useCallback((selectedTabIndex: number) => {
+    console.log("Tab changed to:", selectedTabIndex)
+    setSelected(selectedTabIndex)
+  }, [])
+
+  const toggleIsLoading = useCallback(() => {
+    console.log("Toggling loading state")
+    setIsLoading((isLoading) => !isLoading)
+  }, [])
 
   const tabs = [
     {
@@ -67,18 +81,33 @@ export default function Analytics() {
     ["商品E", "75", "¥9,800", "4.1"],
   ]
 
+  // サンプルデータ
+  const data = [
+    { month: "1月", sales: 1200000, orders: 150 },
+    { month: "2月", sales: 1500000, orders: 180 },
+    { month: "3月", sales: 1800000, orders: 220 },
+    { month: "4月", sales: 1600000, orders: 190 },
+  ]
+
   return (
     <Page
       title="分析ダッシュボード"
       primaryAction={{ content: "データを更新", onAction: toggleIsLoading }}
-      secondaryActions={[{ content: "レポートをエクスポート" }, { content: "期間を設定" }]}
+      secondaryActions={[
+        {
+          content: "レポートをエクスポート",
+          onAction: () => {
+            console.log("エクスポートボタンがクリックされました")
+          },
+        },
+      ]}
     >
       <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange}>
         {selected === 0 && (
           <Layout>
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <Text variant="headingMd" as="h2">
                     売上概要
                   </Text>
@@ -86,47 +115,73 @@ export default function Analytics() {
                     <SkeletonBodyText lines={3} />
                   ) : (
                     <Text as="p">
-                      過去30日間の総売上: ¥1,250,000 (前月比 +15%)
-                      <br />
-                      平均注文額: ¥8,500 (前月比 +5%)
-                      <br />
-                      注文数: 147 (前月比 +10%)
+                      過去30日間の売上は前月比15%増加しました。特に商品Aの売上が好調で、
+                      新規顧客からの注文が30%を占めています。
                     </Text>
                   )}
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
 
-            <Layout.Section oneHalf>
-              <LegacyCard title="地域別売上">
+            <Layout.Section variant="oneHalf">
+              <LegacyCard title="月次売上推移">
                 <LegacyCard.Section>
                   {isLoading ? (
                     <SkeletonBodyText lines={8} />
                   ) : (
-                    <DataTable
-                      columnContentTypes={["text", "numeric", "numeric", "numeric"]}
-                      headings={["地域", "注文数", "平均注文額", "顧客あたり注文数"]}
-                      rows={customerRows}
-                    />
+                    <div style={{ height: "250px" }}>
+                      {/* TODO: グラフライブラリを使用して売上推移を表示 */}
+                      <Text as="p">グラフが表示される予定</Text>
+                      <pre>{JSON.stringify(data, null, 2)}</pre>
+                    </div>
                   )}
                 </LegacyCard.Section>
               </LegacyCard>
             </Layout.Section>
 
-            <Layout.Section oneHalf>
-              <LegacyCard title="売上貢献商品">
+            <Layout.Section variant="oneHalf">
+              <LegacyCard title="注文数推移">
                 <LegacyCard.Section>
                   {isLoading ? (
                     <SkeletonBodyText lines={8} />
                   ) : (
-                    <DataTable
-                      columnContentTypes={["text", "numeric", "numeric", "numeric"]}
-                      headings={["商品名", "販売数", "売上", "評価"]}
-                      rows={productRows}
-                    />
+                    <div style={{ height: "250px" }}>
+                      {/* TODO: グラフライブラリを使用して注文数推移を表示 */}
+                      <Text as="p">グラフが表示される予定</Text>
+                      <pre>{JSON.stringify(data, null, 2)}</pre>
+                    </div>
                   )}
                 </LegacyCard.Section>
               </LegacyCard>
+            </Layout.Section>
+
+            <Layout.Section>
+              <Card>
+                <Box padding="4">
+                  <Text variant="headingMd" as="h2">
+                    AIによるインサイト
+                  </Text>
+                  {isLoading ? (
+                    <SkeletonBodyText lines={3} />
+                  ) : (
+                    <Text as="p">
+                      データ分析の結果、以下のような傾向が見られます：
+                      <br />
+                      1. 週末の売上が平日と比べて25%高い
+                      <br />
+                      2. リピート購入率が前月比で10%向上
+                      <br />
+                      3. 商品Aと商品Bの組み合わせ購入が増加傾向
+                    </Text>
+                  )}
+                </Box>
+                <Box padding="4">
+                  <ButtonGroup>
+                    <Button variant="primary">詳細分析を表示</Button>
+                    <Button variant="secondary">レポートを生成</Button>
+                  </ButtonGroup>
+                </Box>
+              </Card>
             </Layout.Section>
           </Layout>
         )}
@@ -135,7 +190,7 @@ export default function Analytics() {
           <Layout>
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <Text variant="headingMd" as="h2">
                     顧客セグメント分析
                   </Text>
@@ -150,13 +205,13 @@ export default function Analytics() {
                       新規顧客獲得コスト: ¥2,500 (前月比 -5%)
                     </Text>
                   )}
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
 
             <Layout.Section>
               <Card>
-                <Card.Section>
+                <Box padding="4">
                   <Text variant="headingMd" as="h2">
                     AIによる顧客インサイト
                   </Text>
@@ -172,13 +227,13 @@ export default function Analytics() {
                       顧客満足度とリピート率を向上させることができます。
                     </Text>
                   )}
-                </Card.Section>
-                <Card.Section>
+                </Box>
+                <Box padding="4">
                   <ButtonGroup>
-                    <Button>詳細分析を見る</Button>
-                    <Button primary>セグメント別キャンペーン作成</Button>
+                    <Button variant="secondary">詳細分析を見る</Button>
+                    <Button variant="primary">セグメント別キャンペーン作成</Button>
                   </ButtonGroup>
-                </Card.Section>
+                </Box>
               </Card>
             </Layout.Section>
           </Layout>

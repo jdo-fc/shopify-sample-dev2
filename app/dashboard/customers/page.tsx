@@ -6,285 +6,168 @@ import {
   Card,
   Text,
   SkeletonBodyText,
-  Filters,
+  DataTable,
+  ButtonGroup,
   Button,
-  ResourceList,
-  ResourceItem,
-  Avatar,
-  TextStyle,
-  Pagination,
-  EmptySearchResult,
+  Box,
+  Tabs,
+  LegacyCard,
+  EmptyState,
 } from "@shopify/polaris"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 
 export default function Customers() {
+  const [selected, setSelected] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [queryValue, setQueryValue] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  const toggleIsLoading = useCallback(() => setIsLoading((isLoading) => !isLoading), [])
+  // デバッグ用のeffect
+  useEffect(() => {
+    console.log("Customers component mounted")
+    console.log("Current tab:", selected)
+    console.log("Loading state:", isLoading)
+  }, [selected, isLoading])
 
-  const handleQueryValueChange = useCallback((value: string) => setQueryValue(value), [])
+  const handleTabChange = useCallback((selectedTabIndex: number) => {
+    console.log("Tab changed to:", selectedTabIndex)
+    setSelected(selectedTabIndex)
+  }, [])
 
-  const handleTagsChange = useCallback((value: string[]) => setSelectedTags(value), [])
+  const toggleIsLoading = useCallback(() => {
+    console.log("Toggling loading state")
+    setIsLoading((isLoading) => !isLoading)
+  }, [])
 
-  const handleQueryClear = useCallback(() => setQueryValue(""), [])
-  const handleClearAll = useCallback(() => {
-    handleQueryClear()
-    setSelectedTags([])
-  }, [handleQueryClear])
-
-  // サンプル顧客データ
-  const customers = [
+  const tabs = [
     {
-      id: "1",
-      name: "山田太郎",
-      email: "yamada@example.com",
-      location: "東京",
-      orders: 5,
-      totalSpent: "¥45,000",
-      lastOrder: "2023/10/15",
-      tags: ["VIP", "リピーター"],
+      id: "all-customers",
+      content: "全ての顧客",
+      accessibilityLabel: "全ての顧客タブ",
+      panelID: "all-customers-content",
     },
     {
-      id: "2",
-      name: "佐藤花子",
-      email: "sato@example.com",
-      location: "大阪",
-      orders: 3,
-      totalSpent: "¥28,500",
-      lastOrder: "2023/09/22",
-      tags: ["リピーター"],
+      id: "new-customers",
+      content: "新規顧客",
+      accessibilityLabel: "新規顧客タブ",
+      panelID: "new-customers-content",
     },
     {
-      id: "3",
-      name: "鈴木一郎",
-      email: "suzuki@example.com",
-      location: "名古屋",
-      orders: 1,
-      totalSpent: "¥12,000",
-      lastOrder: "2023/10/05",
-      tags: ["新規"],
-    },
-    {
-      id: "4",
-      name: "高橋みどり",
-      email: "takahashi@example.com",
-      location: "福岡",
-      orders: 8,
-      totalSpent: "¥78,000",
-      lastOrder: "2023/10/18",
-      tags: ["VIP", "リピーター"],
-    },
-    {
-      id: "5",
-      name: "田中健太",
-      email: "tanaka@example.com",
-      location: "札幌",
-      orders: 2,
-      totalSpent: "¥15,800",
-      lastOrder: "2023/08/30",
-      tags: ["リピーター"],
+      id: "repeat-customers",
+      content: "リピーター",
+      accessibilityLabel: "リピーター顧客タブ",
+      panelID: "repeat-customers-content",
     },
   ]
 
-  const resourceName = {
-    singular: "顧客",
-    plural: "顧客",
-  }
-
-  const filters = [
-    {
-      key: "tags",
-      label: "タグ",
-      filter: (
-        <Filters.ResourceList
-          resourceName={resourceName}
-          filterValueKey="tags"
-          filterKey="tags"
-          filter={{
-            key: "tags",
-            label: "タグ",
-            operatorText: "が次を含む",
-            filter: (
-              <Filters.ResourceList
-                resourceName={resourceName}
-                filterValueKey="tags"
-                filterKey="tags"
-                filter={{
-                  key: "tags",
-                  label: "タグ",
-                  operatorText: "が次を含む",
-                  filter: <div />,
-                }}
-              />
-            ),
-          }}
-        />
-      ),
-      shortcut: true,
-    },
-    {
-      key: "location",
-      label: "地域",
-      filter: (
-        <Filters.ResourceList
-          resourceName={resourceName}
-          filterValueKey="location"
-          filterKey="location"
-          filter={{
-            key: "location",
-            label: "地域",
-            operatorText: "が次を含む",
-            filter: <div />,
-          }}
-        />
-      ),
-      shortcut: true,
-    },
+  // サンプルデータ
+  const customerRows = [
+    ["田中太郎", "東京", "3回", "¥45,600", "4.8"],
+    ["鈴木花子", "大阪", "5回", "¥78,900", "4.5"],
+    ["佐藤健一", "名古屋", "2回", "¥23,400", "4.2"],
+    ["山田優子", "福岡", "4回", "¥56,700", "4.7"],
+    ["中村一郎", "札幌", "1回", "¥12,300", "4.0"],
   ]
-
-  const filterControl = (
-    <Filters
-      queryValue={queryValue}
-      filters={filters}
-      onQueryChange={handleQueryValueChange}
-      onQueryClear={handleQueryClear}
-      onClearAll={handleClearAll}
-    />
-  )
 
   return (
     <Page
       title="顧客管理"
       primaryAction={{ content: "データを更新", onAction: toggleIsLoading }}
-      secondaryActions={[{ content: "顧客をエクスポート" }, { content: "セグメントを作成" }]}
+      secondaryActions={[
+        {
+          content: "顧客データをエクスポート",
+          onAction: () => {
+            console.log("顧客データのエクスポートがクリックされました")
+          },
+        },
+      ]}
     >
-      <Layout>
-        <Layout.Section>
-          <Card>
-            <Card.Section>
-              <Text variant="headingMd" as="h2">
-                顧客概要
-              </Text>
-              {isLoading ? (
-                <SkeletonBodyText lines={3} />
-              ) : (
-                <Text as="p">
-                  総顧客数: 523
-                  <br />
-                  アクティブ顧客: 312 (60%)
-                  <br />
-                  平均顧客生涯価値 (LTV): ¥35,800
+      <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange}>
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <Box padding={4}>
+                <Text variant="headingMd" as="h2">
+                  顧客概要
                 </Text>
-              )}
-            </Card.Section>
-          </Card>
-        </Layout.Section>
+                {isLoading ? (
+                  <SkeletonBodyText lines={3} />
+                ) : (
+                  <Text as="p">
+                    総顧客数: 1,234名 (前月比 +5%)
+                    <br />
+                    平均購入回数: 2.8回
+                    <br />
+                    平均顧客単価: ¥15,600
+                  </Text>
+                )}
+              </Box>
+            </Card>
+          </Layout.Section>
 
-        <Layout.Section>
-          <Card>
-            <Card.Section>
-              <Text variant="headingMd" as="h2">
-                AIによる顧客インサイト
-              </Text>
-              {isLoading ? (
-                <SkeletonBodyText lines={5} />
-              ) : (
-                <Text as="p">
-                  VIP顧客は平均して3ヶ月に一度の頻度で購入しており、主に商品AとCに関心を示しています。
-                  <br />
-                  <br />
-                  新規顧客の約40%が初回購入後60日以内に2回目の購入をしています。初回購入後のフォローアップメールが効果的です。
-                  <br />
-                  <br />
-                  東京地域の顧客は平均購入額が他の地域より20%高く、特に商品Cへの関心が高いです。
+          <Layout.Section>
+            <LegacyCard title="顧客リスト">
+              <LegacyCard.Section>
+                {isLoading ? (
+                  <SkeletonBodyText lines={10} />
+                ) : (
+                  <DataTable
+                    columnContentTypes={["text", "text", "text", "numeric", "numeric"]}
+                    headings={["顧客名", "地域", "購入回数", "累計購入額", "評価"]}
+                    rows={customerRows}
+                  />
+                )}
+              </LegacyCard.Section>
+            </LegacyCard>
+          </Layout.Section>
+
+          <Layout.Section>
+            <Card>
+              <Box padding={4}>
+                <Text variant="headingMd" as="h2">
+                  AIによる顧客インサイト
                 </Text>
-              )}
-            </Card.Section>
-            <Card.Section>
-              <Button primary>顧客セグメントを分析</Button>
-            </Card.Section>
-          </Card>
-        </Layout.Section>
+                {isLoading ? (
+                  <SkeletonBodyText lines={5} />
+                ) : (
+                  <Text as="p">
+                    最近の顧客行動分析によると：
+                    <br />
+                    1. リピート率が前月比10%向上しています
+                    <br />
+                    2. 20-30代の女性顧客が増加傾向にあります
+                    <br />
+                    3. 商品AとBの組み合わせ購入が人気です
+                    <br />
+                    4. 平均購入単価が15%上昇しています
+                  </Text>
+                )}
+              </Box>
+              <Box padding={4}>
+                <ButtonGroup>
+                  <Button variant="primary">詳細分析を表示</Button>
+                  <Button variant="secondary">キャンペーンを作成</Button>
+                </ButtonGroup>
+              </Box>
+            </Card>
+          </Layout.Section>
 
-        <Layout.Section>
-          <Card>
-            <ResourceList
-              resourceName={resourceName}
-              items={customers}
-              renderItem={(item) => {
-                const { id, name, email, location, orders, totalSpent, lastOrder, tags } = item
-                const shortcutActions = [
-                  {
-                    content: "詳細を見る",
-                    url: `/dashboard/customers/${id}`,
-                  },
-                  {
-                    content: "メール送信",
-                    url: `mailto:${email}`,
-                  },
-                ]
-
-                return (
-                  <ResourceItem
-                    id={id}
-                    url={`/dashboard/customers/${id}`}
-                    accessibilityLabel={`${name}の詳細を見る`}
-                    shortcutActions={shortcutActions}
-                    persistActions
-                  >
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      <Avatar customer size="medium" name={name} />
-                      <div style={{ marginLeft: "1rem", flex: 1 }}>
-                        <h3>
-                          <TextStyle variation="strong">{name}</TextStyle>
-                        </h3>
-                        <div>{email}</div>
-                        <div>
-                          <TextStyle variation="subdued">
-                            {location} • 注文数: {orders} • 合計: {totalSpent} • 最終注文: {lastOrder}
-                          </TextStyle>
-                        </div>
-                        <div style={{ marginTop: "0.5rem" }}>
-                          {tags.map((tag) => (
-                            <span
-                              key={tag}
-                              style={{
-                                marginRight: "0.5rem",
-                                background: "#f4f6f8",
-                                padding: "2px 8px",
-                                borderRadius: "12px",
-                                fontSize: "12px",
-                              }}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </ResourceItem>
-                )
-              }}
-              filterControl={filterControl}
-              loading={isLoading}
-              emptyState={
-                <EmptySearchResult
-                  title="該当する顧客が見つかりません"
-                  description="検索条件を変更するか、新しい顧客を追加してください。"
-                  withIllustration
-                />
-              }
-            />
-            <Card.Section>
-              <div style={{ display: "flex", justifyContent: "center", padding: "1rem 0" }}>
-                <Pagination hasPrevious onPrevious={() => {}} hasNext onNext={() => {}} />
-              </div>
-            </Card.Section>
-          </Card>
-        </Layout.Section>
-      </Layout>
+          <Layout.Section>
+            <Card>
+              <Box padding={4}>
+                <EmptyState
+                  heading="顧客フィードバック"
+                  action={{ content: "フィードバックを収集" }}
+                  image="/feedback-empty-state.svg"
+                >
+                  <p>
+                    まだフィードバックが収集されていません。
+                    顧客からの声を集めて、サービス改善に活用しましょう。
+                  </p>
+                </EmptyState>
+              </Box>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </Tabs>
     </Page>
   )
 }
