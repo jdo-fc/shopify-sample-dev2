@@ -1,0 +1,219 @@
+"use client"
+
+import { useState, useCallback } from "react"
+import {
+  Page,
+  Layout,
+  Card,
+  Button,
+  Text,
+  Frame,
+  Navigation,
+  TopBar,
+  SkeletonBodyText,
+  LegacyCard,
+  DataTable,
+  ButtonGroup,
+  ActionList,
+  BlockStack,
+} from "@shopify/polaris"
+
+export default function Dashboard() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [mobileNavigationActive, setMobileNavigationActive] = useState(false)
+  const [userMenuActive, setUserMenuActive] = useState(false)
+  const [searchActive, setSearchActive] = useState(false)
+  const [searchValue, setSearchValue] = useState("")
+
+  const toggleMobileNavigationActive = useCallback(() => setMobileNavigationActive((active) => !active), [])
+
+  const toggleUserMenuActive = useCallback(() => setUserMenuActive((active) => !active), [])
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value)
+  }, [])
+
+  const handleSearchResultsDismiss = useCallback(() => {
+    setSearchActive(false)
+    setSearchValue("")
+  }, [])
+
+  const toggleIsLoading = useCallback(() => setIsLoading((isLoading) => !isLoading), [])
+
+  const userMenuActions = [
+    {
+      items: [{ content: "プロフィール設定" }, { content: "ログアウト" }],
+    },
+  ]
+
+  const userMenuMarkup = (
+    <TopBar.UserMenu
+      actions={userMenuActions}
+      name="Shopify Store"
+      detail="ストアオーナー"
+      initials="S"
+      open={userMenuActive}
+      onToggle={toggleUserMenuActive}
+    />
+  )
+
+  const searchResultsMarkup = (
+    <Card>
+      <ActionList items={[{ content: "商品A" }, { content: "商品B" }, { content: "顧客X" }]} />
+    </Card>
+  )
+
+  const searchFieldMarkup = <TopBar.SearchField onChange={handleSearchChange} value={searchValue} placeholder="検索" />
+
+  const topBarMarkup = (
+    <TopBar
+      showNavigationToggle
+      userMenu={userMenuMarkup}
+      searchField={searchFieldMarkup}
+      searchResultsVisible={searchActive}
+      searchResults={searchResultsMarkup}
+      onSearchResultsDismiss={handleSearchResultsDismiss}
+      onNavigationToggle={toggleMobileNavigationActive}
+    />
+  )
+
+  const navigationMarkup = (
+    <Navigation location="/">
+      <Navigation.Section
+        items={[
+          {
+            url: "/dashboard",
+            label: "ホーム",
+          },
+          {
+            url: "/dashboard/analytics",
+            label: "分析",
+          },
+          {
+            url: "/dashboard/products",
+            label: "商品",
+          },
+          {
+            url: "/dashboard/customers",
+            label: "顧客",
+          },
+          {
+            url: "/dashboard/marketing",
+            label: "マーケティング",
+          },
+          {
+            url: "/dashboard/settings",
+            label: "設定",
+          },
+        ]}
+      />
+    </Navigation>
+  )
+
+  // サンプルデータ
+  const data = [
+    { name: "1月", sales: 50, conversions: 30 },
+    { name: "2月", sales: 65, conversions: 40 },
+    { name: "3月", sales: 75, conversions: 45 },
+    { name: "4月", sales: 90, conversions: 60 },
+  ]
+
+  const rows = [
+    ["商品A", "¥12,000", "120", "4.5"],
+    ["商品B", "¥8,500", "85", "4.2"],
+    ["商品C", "¥15,000", "60", "4.8"],
+    ["商品D", "¥5,000", "200", "3.9"],
+    ["商品E", "¥9,800", "75", "4.1"],
+  ]
+
+  return (
+    <Frame
+      topBar={topBarMarkup}
+      navigation={navigationMarkup}
+      showMobileNavigation={mobileNavigationActive}
+      onNavigationDismiss={toggleMobileNavigationActive}
+    >
+      <Page title="ダッシュボード" primaryAction={{ content: "データを更新", onAction: toggleIsLoading }}>
+        <Layout>
+          <Layout.Section>
+            <Card>
+              <BlockStack>
+                <div style={{ padding: "16px" }}>
+                  <Text variant="headingMd" as="h2">
+                    AIによる分析概要
+                  </Text>
+                  {isLoading ? (
+                    <SkeletonBodyText lines={3} />
+                  ) : (
+                    <Text as="p">
+                      最近の顧客行動分析によると、商品Aと商品Cの組み合わせ購入が増加しています。
+                      バンドル販売の検討をおすすめします。また、リピート購入率が15%向上しています。
+                    </Text>
+                  )}
+                </div>
+                <div style={{ padding: "16px" }}>
+                  <ButtonGroup>
+                    <Button variant="secondary">詳細を見る</Button>
+                    <Button variant="primary">AIに質問する</Button>
+                  </ButtonGroup>
+                </div>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+
+          <Layout.Section variant="oneHalf">
+            <LegacyCard title="売上とコンバージョン">
+              <LegacyCard.Section>
+                {isLoading ? (
+                  <SkeletonBodyText lines={8} />
+                ) : (
+                  <div>売上とコンバージョンのグラフ</div>
+                )}
+              </LegacyCard.Section>
+            </LegacyCard>
+          </Layout.Section>
+
+          <Layout.Section variant="oneHalf">
+            <LegacyCard title="人気商品">
+              <LegacyCard.Section>
+                {isLoading ? (
+                  <SkeletonBodyText lines={8} />
+                ) : (
+                  <DataTable
+                    columnContentTypes={["text", "numeric", "numeric", "numeric"]}
+                    headings={["商品名", "売上", "販売数", "評価"]}
+                    rows={rows}
+                  />
+                )}
+              </LegacyCard.Section>
+            </LegacyCard>
+          </Layout.Section>
+
+          <Layout.Section>
+            <Card>
+              <BlockStack>
+                <div style={{ padding: "16px" }}>
+                  <Text variant="headingMd" as="h2">
+                    AIによるマーケティング提案
+                  </Text>
+                  {isLoading ? (
+                    <SkeletonBodyText lines={3} />
+                  ) : (
+                    <Text as="p">
+                      過去30日間の購入データに基づくと、20代女性向けの商品Bのプロモーションが効果的です。
+                      週末にSNSキャンペーンを実施することで、コンバージョン率が約25%向上する可能性があります。
+                    </Text>
+                  )}
+                </div>
+                <div style={{ padding: "16px" }}>
+                  <Button variant="primary">キャンペーンを作成</Button>
+                </div>
+              </BlockStack>
+            </Card>
+          </Layout.Section>
+        </Layout>
+      </Page>
+    </Frame>
+  )
+}
+
