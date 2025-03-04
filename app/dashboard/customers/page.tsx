@@ -60,11 +60,11 @@ export default function Customers() {
 
   // サンプルデータ
   const customerRows = [
-    ["田中太郎", "東京", "3回", "¥45,600", "4.8"],
-    ["鈴木花子", "大阪", "5回", "¥78,900", "4.5"],
-    ["佐藤健一", "名古屋", "2回", "¥23,400", "4.2"],
-    ["山田優子", "福岡", "4回", "¥56,700", "4.7"],
-    ["中村一郎", "札幌", "1回", "¥12,300", "4.0"],
+    ["スイーツカフェ Bloom", "東京都渋谷区", "25回", "¥2,250,000", "4.8"],
+    ["パティスリーさくら", "大阪府大阪市", "18回", "¥1,580,000", "4.5"],
+    ["ケーキハウスメイプル", "愛知県名古屋市", "12回", "¥980,000", "4.2"],
+    ["洋菓子工房アンジュ", "福岡県福岡市", "30回", "¥2,780,000", "4.7"],
+    ["カフェベーカリーオリーブ", "北海道札幌市", "15回", "¥1,250,000", "4.0"],
   ]
 
   return (
@@ -84,7 +84,7 @@ export default function Customers() {
         <Layout>
           <Layout.Section>
             <Card>
-              <Box padding={4}>
+              <Box padding="4">
                 <Text variant="headingMd" as="h2">
                   顧客概要
                 </Text>
@@ -92,11 +92,11 @@ export default function Customers() {
                   <SkeletonBodyText lines={3} />
                 ) : (
                   <Text as="p">
-                    総顧客数: 1,234名 (前月比 +5%)
+                    総顧客数: 523店舗 (前月比 +8%)
                     <br />
-                    平均購入回数: 2.8回
+                    平均月間購入額: ¥185,000
                     <br />
-                    平均顧客単価: ¥15,600
+                    平均注文頻度: 2.8回/月
                   </Text>
                 )}
               </Box>
@@ -111,7 +111,7 @@ export default function Customers() {
                 ) : (
                   <DataTable
                     columnContentTypes={["text", "text", "text", "numeric", "numeric"]}
-                    headings={["顧客名", "地域", "購入回数", "累計購入額", "評価"]}
+                    headings={["店舗名", "所在地", "購入回数", "累計購入額", "評価"]}
                     rows={customerRows}
                   />
                 )}
@@ -121,7 +121,7 @@ export default function Customers() {
 
           <Layout.Section>
             <Card>
-              <Box padding={4}>
+              <Box padding="4">
                 <Text variant="headingMd" as="h2">
                   AIによる顧客インサイト
                 </Text>
@@ -129,19 +129,19 @@ export default function Customers() {
                   <SkeletonBodyText lines={5} />
                 ) : (
                   <Text as="p">
-                    最近の顧客行動分析によると：
+                    最近の顧客動向分析：
                     <br />
-                    1. リピート率が前月比10%向上しています
+                    1. エコ包材への関心が高まっており、特に新規開業店舗の78%がエコクラフトシリーズを選択
                     <br />
-                    2. 20-30代の女性顧客が増加傾向にあります
+                    2. 季節商品（バレンタイン、クリスマス等）の発注が2ヶ月前から増加傾向
                     <br />
-                    3. 商品AとBの組み合わせ購入が人気です
+                    3. ギフトボックスと紙袋のセット購入率が前年比25%上昇
                     <br />
-                    4. 平均購入単価が15%上昇しています
+                    4. SNS映えする包装資材を求める顧客が増加中（特に20-30代オーナー）
                   </Text>
                 )}
               </Box>
-              <Box padding={4}>
+              <Box padding="4">
                 <ButtonGroup>
                   <Button variant="primary">詳細分析を表示</Button>
                   <Button variant="secondary">キャンペーンを作成</Button>
@@ -152,15 +152,15 @@ export default function Customers() {
 
           <Layout.Section>
             <Card>
-              <Box padding={4}>
+              <Box padding="4">
                 <EmptyState
                   heading="顧客フィードバック"
                   action={{ content: "フィードバックを収集" }}
                   image="/feedback-empty-state.svg"
                 >
                   <p>
-                    まだフィードバックが収集されていません。
-                    顧客からの声を集めて、サービス改善に活用しましょう。
+                    商品の使用感や改善要望を収集し、より良い包装資材の開発に活用しましょう。
+                    特に季節商品や新商品について、お客様の声をお待ちしています。
                   </p>
                 </EmptyState>
               </Box>

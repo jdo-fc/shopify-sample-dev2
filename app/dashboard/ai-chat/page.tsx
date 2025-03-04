@@ -1,29 +1,57 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Page, Layout, Card, TextField, Button, Text, Avatar, Spinner } from "@shopify/polaris"
-import { SendMajor } from "@shopify/polaris-icons"
+import { Page, Layout, Card, TextField, Button, Text, Avatar, Spinner, Tag, ActionList, Popover } from "@shopify/polaris"
 
 interface Message {
   id: string
   content: string
   sender: "user" | "ai"
   timestamp: Date
+  category?: string
 }
 
+const SUGGESTED_QUESTIONS = [
+  {
+    category: "売上分析",
+    questions: [
+      "先月の売上トップ3商品は何ですか？",
+      "売上が最も伸びている時間帯はいつですか？",
+      "今月の売上目標の達成率はどのくらいですか？"
+    ]
+  },
+  {
+    category: "商品分析",
+    questions: [
+      "在庫が少なくなっている商品はありますか？",
+      "返品率が高い商品はどれですか？",
+      "商品Aと相性の良い商品を教えてください"
+    ]
+  },
+  {
+    category: "顧客分析",
+    questions: [
+      "リピート率の高い顧客層を教えてください",
+      "最近の顧客の年齢層の傾向を分析してください",
+      "顧客の平均購入額はいくらですか？"
+    ]
+  }
+]
+
 export default function AIChat() {
+  console.log("AIChat component rendered")
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "こんにちは！Shopifyストアのデータ分析やマーケティング戦略について質問があればお気軽にどうぞ。",
+      content: "こんにちは！Shopifyストアのデータ分析について質問があればお答えします。\n\n以下のような質問に対応できます：\n・売上分析\n・商品分析\n・顧客分析\n・マーケティング戦略",
       sender: "ai",
       timestamp: new Date(),
     },
   ])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [popoverActive, setPopoverActive] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const handleInputChange = useCallback((value: string) => setInputValue(value), [])
@@ -36,12 +64,12 @@ export default function AIChat() {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  const handleSendMessage = useCallback(() => {
-    if (!inputValue.trim()) return
+  const handleSendMessage = useCallback((text: string = inputValue) => {
+    if (!text.trim()) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: text,
       sender: "user",
       timestamp: new Date(),
     }
@@ -49,51 +77,16 @@ export default function AIChat() {
     setMessages((prev) => [...prev, userMessage])
     setInputValue("")
     setIsLoading(true)
+    setPopoverActive(false)
 
     // AIの応答をシミュレート
     setTimeout(() => {
-      let aiResponse: Message
-
-      if (inputValue.toLowerCase().includes("売上")) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "過去30日間の売上分析によると、前月比で15%増加しています。特に商品Cの売上が顕著で、全体の35%を占めています。週末のプロモーションが特に効果的でした。",
-          sender: "ai",
-          timestamp: new Date(),
-        }
-      } else if (inputValue.toLowerCase().includes("顧客") || inputValue.toLowerCase().includes("ユーザー")) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "顧客分析によると、リピート率は42%で、VIP顧客（5回以上の購入）は全体の15%です。20-35歳の女性が最も活発な顧客層で、平均購入額は¥12,500です。顧客維持のためにロイヤルティプログラムの導入を検討されてはいかがでしょうか？",
-          sender: "ai",
-          timestamp: new Date(),
-        }
-      } else if (inputValue.toLowerCase().includes("商品") || inputValue.toLowerCase().includes("プロダクト")) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "商品パフォーマンス分析によると、商品Aと商品Cが最も人気があります。商品Bは閲覧数は多いものの、コンバージョン率が低いため、商品説明や価格設定の見直しが推奨されます。また、商品AとCのバンドル販売を検討すると、平均注文額を15%程度向上させる可能性があります。",
-          sender: "ai",
-          timestamp: new Date(),
-        }
-      } else if (inputValue.toLowerCase().includes("マーケティング") || inputValue.toLowerCase().includes("広告")) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "マーケティング分析によると、Instagramからの流入が最も高いコンバージョン率を示しています。また、メールマーケティングは平均して18%の開封率と5%のクリック率を達成しています。次のキャンペーンでは、Instagramでの商品Cのプロモーションと、過去3ヶ月以内に購入した顧客へのフォローアップメールが効果的でしょう。",
-          sender: "ai",
-          timestamp: new Date(),
-        }
-      } else {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          content:
-            "ご質問ありがとうございます。もう少し具体的に教えていただけますか？例えば、売上分析、顧客分析、商品パフォーマンス、マーケティング戦略などについて詳しく知りたい場合は、お気軽にお尋ねください。",
-          sender: "ai",
-          timestamp: new Date(),
-        }
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: generateAIResponse(text),
+        sender: "ai",
+        timestamp: new Date(),
+        category: detectCategory(text)
       }
 
       setMessages((prev) => [...prev, aiResponse])
@@ -101,8 +94,38 @@ export default function AIChat() {
     }, 1500)
   }, [inputValue])
 
+  const detectCategory = (text: string): string => {
+    if (text.includes("売上") || text.includes("収益")) return "売上分析"
+    if (text.includes("商品") || text.includes("在庫")) return "商品分析"
+    if (text.includes("顧客") || text.includes("ユーザー")) return "顧客分析"
+    return "その他"
+  }
+
+  const generateAIResponse = (text: string): string => {
+    if (text.includes("売上")) {
+      return "直近30日間の売上分析結果です：\n\n" +
+        "・総売上: ¥18,500,000 (前月比 +15%)\n" +
+        "・売上トップ3商品:\n" +
+        "  1. パウンドケーキ箱(クラフト): ¥4,510,000\n" +
+        "  2. UNIエコクラフトデコ箱4号H80: ¥2,530,000\n" +
+        "  3. UNIライトプルーフ5号H65: ¥1,980,000\n\n" +
+        "特に新規開業の洋菓子店からの注文が好調で、前年同期比で25%増加しています。"
+    }
+    if (text.includes("商品")) {
+      return "商品分析結果です：\n\n" +
+        "・売れ筋商品: パウンドケーキ箱(クラフト), UNIエコクラフトシリーズ\n" +
+        "・在庫アラート: UNIライトプルーフ5号H65 (在庫残150個)\n" +
+        "・高評価商品: nwホワイト4号H60 (評価平均4.9)\n\n" +
+        "エコクラフトシリーズと紙袋のセット販売ページの作成を検討することをお勧めします。環境配慮型包装のニーズが高まっています。"
+    }
+    return "申し訳ありません。もう少し具体的な質問をいただけますでしょうか？\n例えば以下のような質問に回答できます：\n\n" +
+      "・「今月の売上トップ商品は何ですか？」\n" +
+      "・「どの包装資材が人気ですか？」\n" +
+      "・「新商品の提案をしてください」"
+  }
+
   const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault()
         handleSendMessage()
@@ -111,8 +134,23 @@ export default function AIChat() {
     [handleSendMessage],
   )
 
+  const togglePopover = useCallback(
+    () => setPopoverActive((popoverActive) => !popoverActive),
+    [],
+  )
+
+  const activator = (
+    <Button onClick={togglePopover}>
+      質問例を見る
+    </Button>
+  )
+
   return (
-    <Page title="AIアシスタント">
+    <Page
+      title="AIアシスタント"
+      subtitle="ストアのデータを分析し、最適な提案を行います"
+      backAction={{ content: "ダッシュボードに戻る", url: "/dashboard" }}
+    >
       <Layout>
         <Layout.Section>
           <Card>
@@ -127,7 +165,12 @@ export default function AIChat() {
                       marginBottom: "1rem",
                     }}
                   >
-                    {message.sender === "ai" && <Avatar source="/ai-avatar.svg" size="small" />}
+                    {message.sender === "ai" && (
+                      <Avatar
+                        initials="AI"
+                        customer
+                      />
+                    )}
                     <div
                       style={{
                         maxWidth: "70%",
@@ -137,6 +180,7 @@ export default function AIChat() {
                         color: message.sender === "user" ? "white" : "inherit",
                         marginLeft: message.sender === "ai" ? "0.5rem" : 0,
                         marginRight: message.sender === "user" ? "0.5rem" : 0,
+                        whiteSpace: "pre-wrap",
                       }}
                     >
                       <Text as="p">{message.content}</Text>
@@ -144,19 +188,25 @@ export default function AIChat() {
                         style={{
                           fontSize: "0.75rem",
                           marginTop: "0.25rem",
-                          textAlign: message.sender === "user" ? "right" : "left",
                           opacity: 0.7,
+                          display: "flex",
+                          justifyContent: message.sender === "user" ? "flex-end" : "flex-start",
+                          alignItems: "center",
+                          gap: "0.5rem",
                         }}
                       >
-                        {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {message.category && <Tag>{message.category}</Tag>}
+                        <span>{message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
                     </div>
-                    {message.sender === "user" && <Avatar customer initials="ME" size="small" />}
+                    {message.sender === "user" && (
+                      <Avatar customer initials="ME" />
+                    )}
                   </div>
                 ))}
                 {isLoading && (
                   <div style={{ display: "flex", alignItems: "center", marginBottom: "1rem" }}>
-                    <Avatar source="/ai-avatar.svg" size="small" />
+                    <Avatar source="/ai-avatar.png" />
                     <div
                       style={{
                         maxWidth: "70%",
@@ -173,7 +223,25 @@ export default function AIChat() {
                 <div ref={messagesEndRef} />
               </div>
               <div style={{ padding: "1rem", borderTop: "1px solid #dfe3e8" }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
+                  <Popover
+                    active={popoverActive}
+                    activator={activator}
+                    onClose={togglePopover}
+                    sectioned
+                  >
+                    <ActionList
+                      sections={SUGGESTED_QUESTIONS.map((section) => ({
+                        title: section.category,
+                        items: section.questions.map((q) => ({
+                          content: q,
+                          onAction: () => handleSendMessage(q),
+                        })),
+                      }))}
+                    />
+                  </Popover>
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
                   <div style={{ flex: 1 }}>
                     <TextField
                       label=""
@@ -183,18 +251,13 @@ export default function AIChat() {
                       multiline={3}
                       maxHeight={150}
                       autoComplete="off"
-                      onKeyDown={handleKeyPress}
                     />
                   </div>
-                  <div style={{ marginLeft: "1rem" }}>
-                    <Button onClick={handleSendMessage} primary icon={SendMajor}>
+                  <div style={{ marginTop: "2px" }}>
+                    <Button onClick={() => handleSendMessage()} variant="primary">
                       送信
                     </Button>
                   </div>
-                </div>
-                <div style={{ marginTop: "0.5rem", fontSize: "0.8rem", color: "#637381" }}>
-                  例:
-                  「先月の売上はどうでしたか？」「人気商品は何ですか？」「効果的なマーケティング戦略を教えてください」
                 </div>
               </div>
             </div>

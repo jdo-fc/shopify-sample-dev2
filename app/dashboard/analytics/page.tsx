@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import {
   Page,
   Layout,
@@ -19,11 +20,23 @@ import {
 export default function Analytics() {
   const [selected, setSelected] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleTabChange = useCallback((selectedTabIndex: number) => {
     console.log("Tab changed to:", selectedTabIndex)
     setSelected(selectedTabIndex)
   }, [])
+
+  const handleAIChatClick = useCallback(() => {
+    console.log("AIアシスタントボタンがクリックされました")
+    try {
+      console.log("画面遷移を試みます: /dashboard/ai-chat")
+      router.push("/dashboard/ai-chat")
+      console.log("router.push が実行されました")
+    } catch (error) {
+      console.error("画面遷移エラー:", error)
+    }
+  }, [router])
 
   const toggleIsLoading = useCallback(() => setIsLoading((isLoading) => !isLoading), [])
 
@@ -56,19 +69,19 @@ export default function Analytics() {
 
   // サンプルデータ
   const customerRows = [
-    ["東京", "32", "¥15,200", "2.4"],
-    ["大阪", "28", "¥12,800", "1.8"],
-    ["名古屋", "15", "¥9,500", "1.5"],
-    ["福岡", "12", "¥8,200", "1.3"],
-    ["札幌", "8", "¥6,500", "1.1"],
+    ["関東", "158", "¥1,850,000", "3.2"],
+    ["関西", "125", "¥1,580,000", "2.8"],
+    ["中部", "89", "¥1,250,000", "2.5"],
+    ["九州", "65", "¥980,000", "2.1"],
+    ["北海道", "45", "¥750,000", "1.8"],
   ]
 
   const productRows = [
-    ["商品A", "120", "¥12,000", "4.5"],
-    ["商品B", "85", "¥8,500", "4.2"],
-    ["商品C", "60", "¥15,000", "4.8"],
-    ["商品D", "200", "¥5,000", "3.9"],
-    ["商品E", "75", "¥9,800", "4.1"],
+    ["パウンドケーキ箱(クラフト)", "1,342", "¥4,510,000", "4.8"],
+    ["UNIエコクラフトデコ箱4号H80", "956", "¥2,530,000", "4.7"],
+    ["UNIライトプルーフ5号H65", "789", "¥1,980,000", "4.6"],
+    ["nwホワイト4号H60", "867", "¥2,200,000", "4.9"],
+    ["パウンドケーキ箱S(ニュートラルグレー)", "845", "¥3,300,000", "4.5"],
   ]
 
   return (
@@ -97,8 +110,8 @@ export default function Analytics() {
                     <SkeletonBodyText lines={3} />
                   ) : (
                     <Text as="p">
-                      過去30日間の売上は前月比15%増加しました。特に商品Aの売上が好調で、
-                      新規顧客からの注文が30%を占めています。
+                      過去30日間の売上は前月比15%増加しました。特にパウンドケーキ箱(クラフト)の売上が好調で、
+                      新規開業の洋菓子店からの注文が30%を占めています。
                     </Text>
                   )}
                 </Box>
@@ -149,11 +162,11 @@ export default function Analytics() {
                     <SkeletonBodyText lines={3} />
                   ) : (
                     <Text as="p">
-                      最も活発な顧客層: 30-45歳の女性 (全体の38%)
+                      最も活発な顧客層: 新規開業1-3年目の洋菓子店 (全体の42%)
                       <br />
-                      リピート率: 42% (前月比 +8%)
+                      リピート率: 68% (前月比 +12%)
                       <br />
-                      新規顧客獲得コスト: ¥2,500 (前月比 -5%)
+                      新規顧客獲得コスト: ¥25,000 (前月比 -15%)
                     </Text>
                   )}
                 </Box>
@@ -186,11 +199,11 @@ export default function Analytics() {
                     <SkeletonBodyText lines={3} />
                   ) : (
                     <Text as="p">
-                      最も売れている商品: 商品D (200個)
+                      最も売れている商品: パウンドケーキ箱(クラフト) (1,342個)
                       <br />
-                      最も収益性の高い商品: 商品C (¥900,000)
+                      最も収益性の高い商品: パウンドケーキ箱(クラフト) (¥4,510,000)
                       <br />
-                      評価の高い商品: 商品C (4.8/5.0)
+                      評価の高い商品: nwホワイト4号H60 (4.9/5.0)
                     </Text>
                   )}
                 </Box>
@@ -208,6 +221,47 @@ export default function Analytics() {
                 </LegacyCard.Section>
               </LegacyCard>
             </Layout.Section>
+
+            <Layout.Section>
+              <Card>
+                <Box padding="4">
+                  <Text variant="headingMd" as="h2">
+                    商品組み合わせ分析
+                  </Text>
+                  {isLoading ? (
+                    <SkeletonBodyText lines={5} />
+                  ) : (
+                    <Text as="p">
+                      よく一緒に購入される商品の組み合わせ：
+                      <br />
+                      <br />
+                      ・パウンドケーキ箱(クラフト) + ギフト用紙袋M
+                      <br />
+                      　→ 新規開業の洋菓子店での注文が多く、特に贈答用途で人気
+                      <br />
+                      <br />
+                      ・UNIエコクラフトデコ箱4号H80 + リボンS
+                      <br />
+                      　→ カフェでのテイクアウト用途での組み合わせが増加中
+                      <br />
+                      <br />
+                      ・nwホワイト4号H60 + ケーキピック
+                      <br />
+                      　→ バースデーケーキ用のギフトセットとして人気上昇中
+                      <br />
+                      <br />
+                      推奨アクション：
+                      <br />
+                      ・上記の組み合わせでのセット販売ページの作成
+                      <br />
+                      ・新規開業店向けのスターターパックとしての提案
+                      <br />
+                      ・季節イベントに合わせたギフトセットの展開
+                    </Text>
+                  )}
+                </Box>
+              </Card>
+            </Layout.Section>
           </Layout>
         )}
 
@@ -218,7 +272,10 @@ export default function Analytics() {
                 <Box padding="4">
                   <EmptyState
                     heading="AIによる高度な分析"
-                    action={{ content: "AIアシスタントに質問する" }}
+                    action={{
+                      content: "AIアシスタントに質問する！",
+                      onAction: handleAIChatClick
+                    }}
                     image="/ai-assistant.svg"
                   >
                     <p>
@@ -240,13 +297,13 @@ export default function Analytics() {
                     <SkeletonBodyText lines={5} />
                   ) : (
                     <Text as="p">
-                      現在のトレンドに基づくと、今後3ヶ月で商品Cの需要が約30%増加すると予測されます。
+                      現在のトレンドに基づくと、今後3ヶ月でエコクラフトシリーズの需要が約35%増加すると予測されます。
                       <br />
                       <br />
-                      季節的要因により、夏季に向けて商品Aの需要が増加する可能性が高いです。在庫の準備をお勧めします。
+                      季節的要因により、年末年始に向けてギフトボックスの需要が増加する可能性が高いです。在庫の準備をお勧めします。
                       <br />
                       <br />
-                      顧客の購買パターン分析によると、次回のセールでは商品Bと商品Eの組み合わせプロモーションが効果的です。
+                      顧客の購買パターン分析によると、次回のセールではパウンドケーキ箱と紙袋の組み合わせプロモーションが効果的です。
                     </Text>
                   )}
                 </Box>
@@ -264,4 +321,5 @@ export default function Analytics() {
     </Page>
   )
 }
+
 
